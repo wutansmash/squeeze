@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Squeeze Ball">
+    <title>Squeeze Ball Protocol</title>
+    <style>
+        :root {
+            --color-primary: #208080;
+            --color-primary-hover: #1a6b6b;
+            --color-primary-active: #1a5c5c;
+            --color-release: #d97706;
+            --color-release-dark: #b45309;
+            --color-surface: #fffcf9;
+            --color-text: #134252;
+            --color-text-secondary: #62716d;
+            --color-border: #e8d9ce;
+            --color-error: #c01530;
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: var(--font-family);
+            background: var(--color-surface);
+            color: var(--color-text);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 0 0 20px 0;
+            color: var(--color-text);
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .audio-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .audio-toggle input {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .hand-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .hand-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--color-border);
+            background: white;
+            color: var(--color-text);
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 200ms ease;
+        }
+
+        .hand-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .hand-btn:hover {
+            border-color: var(--color-primary);
+        }
+
+        .set-counter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .set-counter-label {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+        }
+
+        .set-counter-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .phase-indicator {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .phase-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .phase-desc {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .timer-display {
+            border-radius: 12px;
+            padding: 32px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(32, 128, 128, 0.2);
+            background: linear-gradient(135deg, #208080 0%, #1a6b6b 100%);
+            color: white;
+            transition: background 200ms ease, box-shadow 200ms ease;
+        }
+
+        .timer-display.release {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
+        }
+
+        .timer-time {
+            font-size: 60px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 8px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 200ms ease;
+            font-family: var(--font-family);
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background: #f9f9f9;
+        }
+
+        .btn-danger {
+            background: var(--color-error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #a01228;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-box {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .info-box {
+            background: #f0f8f8;
+            border-left: 4px solid var(--color-primary);
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 13px;
+            color: var(--color-text);
+            line-height: 1.4;
+        }
+
+        .summary-box {
+            background: #f0f8f8;
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .summary-title {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .summary-text {
+            font-size: 15px;
+            color: var(--color-text);
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .timer-time {
+                font-size: 46px;
+            }
+            .card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>💪 Squeeze Ball</h1>
+
+    <div class="card">
+        <div class="audio-toggle">
+            <input type="checkbox" id="audioToggle" checked>
+            <label for="audioToggle">Sound effects</label>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="hand-selector">
+            <button class="hand-btn active" data-hand="right">Right Hand</button>
+            <button class="hand-btn" data-hand="left">Left Hand</button>
+        </div>
+
+        <div class="set-counter">
+            <div class="set-counter-label">Current Set</div>
+            <div class="set-counter-value"><span id="currentSet">1</span>/4</div>
+        </div>
+
+        <div class="phase-indicator">
+            <div class="phase-name" id="phaseName">Squeeze</div>
+            <div class="phase-desc" id="phaseDesc">Hold firmly for 3 seconds</div>
+        </div>
+
+        <div class="timer-display" id="timerBox">
+            <div class="timer-time" id="timerDisplay">3</div>
+            <div class="timer-label" id="timerLabel">Squeeze</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" id="startBtn">Start</button>
+            <button class="btn btn-secondary" id="pauseBtn" style="display:none;">Pause</button>
+            <button class="btn btn-danger" id="resetBtn">Reset</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">Squeezes</div>
+                <div class="stat-value" id="squeezeCount">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Total Time</div>
+                <div class="stat-value" id="totalTime">0:00</div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <strong>Protocol:</strong> 4 sets per hand, 10 squeezes per set. Hold 3 seconds, release 3 seconds. Rest 60 seconds between sets.
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="summary-box">
+            <div class="summary-title">Session Progress</div>
+            <div class="summary-text">
+                <span id="handLabel">Right Hand</span>: <span id="setsComplete">0</span>/4 sets
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const state = {
+        isRunning: false,
+        isPaused: false,
+        currentHand: 'right',
+        currentSet: 1,
+        currentSqueeze: 0,
+        squeezesPerSet: 10,
+        phase: 'squeeze', // 'squeeze' | 'release' | 'rest'
+        squeezeTime: 3,
+        releaseTime: 3,
+        restTime: 60,
+        timeLeft: 3,
+        totalTimeSeconds: 0,
+        soundEnabled: true,
+        handStats: {
+            right: { squeezes: 0, sets: 0 },
+            left: { squeezes: 0, sets: 0 }
+        }
+    };
+
+    let timerInterval = null;
+
+    const el = {
+        timerDisplay: document.getElementById('timerDisplay'),
+        timerLabel: document.getElementById('timerLabel'),
+        timerBox: document.getElementById('timerBox'),
+        startBtn: document.getElementById('startBtn'),
+        pauseBtn: document.getElementById('pauseBtn'),
+        resetBtn: document.getElementById('resetBtn'),
+        currentSet: document.getElementById('currentSet'),
+        squeezeCount: document.getElementById('squeezeCount'),
+        totalTime: document.getElementById('totalTime'),
+        phaseName: document.getElementById('phaseName'),
+        phaseDesc: document.getElementById('phaseDesc'),
+        audioToggle: document.getElementById('audioToggle'),
+        handBtns: document.querySelectorAll('.hand-btn'),
+        handLabel: document.getElementById('handLabel'),
+        setsComplete: document.getElementById('setsComplete')
+    };
+
+    // Hand selection
+    el.handBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            if (state.isRunning) return;
+            el.handBtns.forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            state.currentHand = e.target.dataset.hand;
+            el.handLabel.textContent = state.currentHand === 'right' ? 'Right Hand' : 'Left Hand';
+            updateDisplay();
+        });
+    });
+
+    // Audio toggle
+    el.audioToggle.addEventListener('change', (e) => {
+        state.soundEnabled = e.target.checked;
+    });
+
+    // Start
+    el.startBtn.addEventListener('click', () => {
+        if (state.isRunning) return;
+        state.isRunning = true;
+        state.isPaused = false;
+        el.startBtn.style.display = 'none';
+        el.pauseBtn.style.display = 'block';
+        el.pauseBtn.textContent = 'Pause';
+        startTimer();
+    });
+
+    // Pause/Resume
+    el.pauseBtn.addEventListener('click', () => {
+        if (!state.isRunning) return;
+        if (state.isPaused) {
+            state.isPaused = false;
+            el.pauseBtn.textContent = 'Pause';
+            startTimer();
+        } else {
+            state.isPaused = true;
+            el.pauseBtn.textContent = 'Resume';
+            clearInterval(timerInterval);
+        }
+    });
+
+    // Reset
+    el.resetBtn.addEventListener('click', resetSession);
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (state.isPaused) return;
+            if (state.timeLeft > 0) {
+                state.timeLeft -= 1;
+                state.totalTimeSeconds += 1;
+            } else {
+                nextPhase();
+            }
+            updateDisplay();
+        }, 1000);
+    }
+
+    function nextPhase() {
+        if (state.phase === 'squeeze') {
+            state.currentSqueeze += 1;
+            state.handStats[state.currentHand].squeezes += 1;
+            playBeep('squeeze');
+
+            if (state.currentSqueeze >= state.squeezesPerSet) {
+                state.phase = 'rest';
+                state.timeLeft = state.restTime;
+                playBeep('rest');
+            } else {
+                state.phase = 'release';
+                state.timeLeft = state.releaseTime;
+            }
+        } else if (state.phase === 'release') {
+            state.phase = 'squeeze';
+            state.timeLeft = state.squeezeTime;
+            playBeep('ready');
+        } else if (state.phase === 'rest') {
+            state.handStats[state.currentHand].sets += 1;
+            if (state.currentSet < 4) {
+                state.currentSet += 1;
+                state.currentSqueeze = 0;
+                state.phase = 'squeeze';
+                state.timeLeft = state.squeezeTime;
+                playBeep('setStart');
+            } else {
+                completeSession();
+            }
+        }
+    }
+
+    function completeSession() {
+        state.isRunning = false;
+        clearInterval(timerInterval);
+        el.startBtn.style.display = 'block';
+        el.pauseBtn.style.display = 'none';
+        el.startBtn.textContent = 'Start';
+        playBeep('complete');
+        alert(`Great work! ${state.currentHand === 'right' ? 'Right' : 'Left'} hand complete.`);
+    }
+
+    function resetSession() {
+        clearInterval(timerInterval);
+        state.isRunning = false;
+        state.isPaused = false;
+        state.currentSet = 1;
+        state.currentSqueeze = 0;
+        state.phase = 'squeeze';
+        state.timeLeft = state.squeezeTime;
+        state.totalTimeSeconds = 0;
+        state.handStats[state.currentHand].squeezes = 0;
+        state.handStats[state.currentHand].sets = 0;
+        el.startBtn.style.display = 'block';
+        el.pauseBtn.style.display = 'none';
+        el.startBtn.textContent = 'Start';
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        el.timerDisplay.textContent = state.timeLeft;
+
+        if (state.phase === 'squeeze') {
+            el.timerLabel.textContent = 'Squeeze';
+            el.phaseName.textContent = 'Squeeze';
+            el.phaseDesc.textContent = `Hold firmly (squeeze #${state.currentSqueeze + 1}/${state.squeezesPerSet})`;
+            el.timerBox.classList.remove('release');
+        } else if (state.phase === 'release') {
+            el.timerLabel.textContent = 'Release';
+            el.phaseName.textContent = 'Release';
+            el.phaseDesc.textContent = 'Fully release your grip';
+            el.timerBox.classList.add('release');
+        } else {
+            el.timerLabel.textContent = 'Rest Between Sets';
+            el.phaseName.textContent = 'Rest';
+            el.phaseDesc.textContent = 'Shake out and relax your forearm';
+            el.timerBox.classList.remove('release');
+        }
+
+        el.currentSet.textContent = state.currentSet;
+        el.squeezeCount.textContent = state.handStats[state.currentHand].squeezes;
+        el.setsComplete.textContent = state.handStats[state.currentHand].sets;
+
+        const mins = Math.floor(state.totalTimeSeconds / 60);
+        const secs = state.totalTimeSeconds % 60;
+        el.totalTime.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function playBeep(type) {
+        if (!state.soundEnabled) return;
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime;
+
+        function beep(freq, duration, delay = 0) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.3, now + delay);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + delay + duration);
+            osc.start(now + delay);
+            osc.stop(now + delay + duration);
+        }
+
+        if (type === 'ready' || type === 'squeeze') {
+            beep(800, 0.1);
+        } else if (type === 'rest') {
+            beep(400, 0.15);
+        } else if (type === 'setStart') {
+            beep(600, 0.1, 0);
+            beep(600, 0.1, 0.18);
+        } else if (type === 'complete') {
+            beep(600, 0.1, 0);
+            beep(800, 0.1, 0.18);
+            beep(1000, 0.1, 0.36);
+        }
+    }
+
+    // Initial render
+    updateDisplay();
+</script>
+</body>
+</html>
